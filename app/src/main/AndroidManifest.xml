@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.music.rohit.musicplayer">
 
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -13,28 +13,46 @@
         <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-
-<!--These will allow your service to intercept control buttons, headphone events and media browsing for devices -->
-        <service android:name=".service.AudioService" >
-            <intent-filter >
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+        <!-- These will allow your service to intercept control buttons, headphone events and media browsing for devices -->
+        <service android:name=".service.AudioService">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 
-
-<!--This will allow you to intercept media control button interactions and headphone events on devices running KitKat and earlier. -->
+        <!-- This will allow you to intercept media control button interactions and headphone events on devices running KitKat and earlier. -->
         <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="android.media.AUDIO_BECOMING_NOISY" />
             </intent-filter>
         </receiver>
+       <!-- <receiver android:name=".receiver.NotificationReceiver">
+            <intent-filter>
+                <action android:name="com.example.app.ACTION_PLAY" />
+            </intent-filter>
+        </receiver>-->
+
+        <!--
+        <receiver android:name=".service.AudioService$NotificationReceiver" >
+            <intent-filter>
+                <action android:name="com.example.app.ACTION_PLAY" />
+            </intent-filter>
+        </receiver>
+        -->
+        <activity android:name=".activity.HelperActivity"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:excludeFromRecents="true">
+
+        </activity>
     </application>
 
 </manifest>

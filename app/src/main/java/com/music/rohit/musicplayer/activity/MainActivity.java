@@ -1,31 +1,26 @@
 package com.music.rohit.musicplayer.activity;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.RemoteException;
-import android.provider.ContactsContract;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.music.rohit.musicplayer.R;
+import com.music.rohit.musicplayer.receiver.MusicState;
 import com.music.rohit.musicplayer.service.AudioService;
 
-import java.util.Random;
-
-import static android.media.session.PlaybackState.STATE_PAUSED;
-import static android.media.session.PlaybackState.STATE_PLAYING;
 import static com.music.rohit.musicplayer.R.*;
-import static com.music.rohit.musicplayer.R.drawable.ic_pause_black_36dp;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MusicState {
 
     private static final int STATE_PAUSED = 0;
     private static final int STATE_PLAYING = 1;
@@ -36,20 +31,22 @@ public class MainActivity extends AppCompatActivity {
 
     private MediaBrowserCompat mMediaBrowserCompat;
 
-    private int mCurrentState;
+    public static int mCurrentState;
 
     private android.support.v4.app.NotificationCompat.Builder builder;
-    private RemoteViews remoteViews;
+    public static RemoteViews remoteViews;
 
-    private ImageView mRemotePlay;
+    public static ImageView mRemotePlay;
 
-    private MediaBrowserCompat.ConnectionCallback mMediaBrowserCompatConnectionCallback = new MediaBrowserCompat.ConnectionCallback() {
+    private MediaBrowserCompat.ConnectionCallback mMediaBrowserCompatConnectionCallback =
+            new MediaBrowserCompat.ConnectionCallback() {
 
             @Override
             public void onConnected() {
                 super.onConnected();
                 try {
-                    mMediaControllerCompat = new MediaControllerCompat(MainActivity.this, mMediaBrowserCompat.getSessionToken());
+                    mMediaControllerCompat = new MediaControllerCompat(MainActivity.this,
+                            mMediaBrowserCompat.getSessionToken());
                     mMediaControllerCompat.registerCallback(mMediaControllerCompatCallback);
                     setSupportMediaController(mMediaControllerCompat);
                     getSupportMediaController().getTransportControls().playFromMediaId(String.valueOf(raw.demons), null);
@@ -63,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     //Listen to changes
-    private MediaControllerCompat.Callback mMediaControllerCompatCallback = new MediaControllerCompat.Callback() {
+    private MediaControllerCompat.Callback mMediaControllerCompatCallback =
+            new MediaControllerCompat.Callback() {
 
         @Override
         public void onPlaybackStateChanged(PlaybackStateCompat state) {
@@ -76,13 +74,15 @@ public class MainActivity extends AppCompatActivity {
                 case PlaybackStateCompat.STATE_PLAYING: {
                     mCurrentState = STATE_PLAYING;
                     mPlay.setImageResource(R.drawable.ic_pause_black_36dp);
-                    /*mRemotePlay.setImageResource(android.R.drawable.ic_media_pause);*/
+                    /*remoteViews.setImageViewResource
+                            (R.id.my_notification_remote_play,android.R.drawable.ic_media_pause);*/
                     break;
                 }
                 case PlaybackStateCompat.STATE_PAUSED: {
                     mCurrentState = STATE_PAUSED;
                     mPlay.setImageResource(drawable.ic_play_arrow_black_36dp);
-                    /*mRemotePlay.setImageResource(android.R.drawable.ic_media_play);*/
+                    /*remoteViews.setImageViewResource
+                            (R.id.my_notification_remote_play,android.R.drawable.ic_media_play);*/
                     break;
                 }
             }
@@ -98,11 +98,13 @@ public class MainActivity extends AppCompatActivity {
         mSkipNext = (ImageView)findViewById(id.imageView_next);
         mSkipPrevious = (ImageView)findViewById(id.imageView_previous);
 
-        mMediaBrowserCompat = new MediaBrowserCompat(this, new ComponentName(this, AudioService.class),
+        mMediaBrowserCompat = new MediaBrowserCompat(this, new ComponentName(this,
+                AudioService.class),
                 mMediaBrowserCompatConnectionCallback, getIntent().getExtras());
 
         mMediaBrowserCompat.connect();
-        myNotification();
+        /*myNotification();*/
+
         onClickListeners();
     }
 
@@ -111,27 +113,27 @@ public class MainActivity extends AppCompatActivity {
         mPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               // mMediaBrowserCompat = new MediaBrowserCompat(this, ,MediaControllerCompat.Callback,null);
                 if( mCurrentState == STATE_PAUSED ) {
-                    getSupportMediaController().getTransportControls().play();
-                    mCurrentState = STATE_PLAYING;
+                    /*getSupportMediaController().getTransportControls().play();
+                    mCurrentState = STATE_PLAYING;*/
+                    playMusic();
                 } else {
-                    if( getSupportMediaController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING ) {
+                    /*if( getSupportMediaController().getPlaybackState().getState() ==
+                            PlaybackStateCompat.STATE_PLAYING ) {
                         getSupportMediaController().getTransportControls().pause();
                     }
 
-                    mCurrentState = STATE_PAUSED;
+                    mCurrentState = STATE_PAUSED;*/
+                    pauseMusic();
                 }
 
-               /* getSupportMediaController().getTransportControls().play();
-                mCurrentState = STATE_PLAYING;*/
             }
         });
 
         mSkipPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                getSupportMediaController().getTransportControls().seekTo(-30000);
             }
         });
 
@@ -139,75 +141,66 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                getSupportMediaController().getTransportControls().seekTo(30);
+                getSupportMediaController().getTransportControls().seekTo(30000);
             }
         });
 
     }
 
-
-    public void myNotification() {
-
-        remoteViews = new RemoteViews(getPackageName(),
-                R.layout.my_notification);
-
-        //mRemotePlay = (ImageView) findViewById(id.remote_play);
-
-        /*mRemotePlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if( mCurrentState == STATE_PAUSED ) {
-                    getSupportMediaController().getTransportControls().play();
+    public void playMusic() {
+        getSupportMediaController().getTransportControls().play();
                     mCurrentState = STATE_PLAYING;
-                } else {
-                    if( getSupportMediaController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING ) {
-                        getSupportMediaController().getTransportControls().pause();
-                    }
-
-                    mCurrentState = STATE_PAUSED;
-                }
-            }
-        });*/
-
-        /*remoteViews.setTextViewText(R.id.text, messageBody);
-        remoteViews.setTextViewText(R.id.title, title);*/
-        // Open NotificationView.java Activity
-        Intent i = new Intent(getApplicationContext(),AudioService.class);
-        PendingIntent pIntent = PendingIntent.getActivity(this, 0, i,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        builder = new android.support.v4.app.NotificationCompat.Builder(getApplicationContext())
-                // Set Icon
-                .setSmallIcon(R.mipmap.ic_launcher)
-                // Set Ticker Message
-                .setTicker("New Notification")
-                // Dismiss Notification
-                .setAutoCancel(false)
-                // Set PendingIntent into Notification
-                .setContentIntent(pIntent)
-                // Set RemoteViews into Notification
-                .setContent(remoteViews)
-                //Sticky Notification
-                .setOngoing(true);
-
-
-        // Locate and set the Image into customnotificationtext.xml ImageViews
-        remoteViews.setImageViewResource(R.id.imagenotileft, R.mipmap.ic_launcher);
-        builder.setPriority(2);
-
-        NotificationManager notificationmanager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        // Build Notification with Notification Manager
-
-        Random random = new Random();
-        int m = random.nextInt(9999 - 1000) + 1000;
-
-        notificationmanager.notify(m, builder.build());
     }
 
+    public void pauseMusic() {
+        if( getSupportMediaController().getPlaybackState().getState() ==
+                PlaybackStateCompat.STATE_PLAYING ) {
+            getSupportMediaController().getTransportControls().pause();
+        }
+
+        mCurrentState = STATE_PAUSED;
+    }
 
     @Override
     protected void onDestroy() {
-        builder.setAutoCancel(true);
         super.onDestroy();
+        if( getSupportMediaController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING ) {
+            getSupportMediaController().getTransportControls().pause();
+        }
+
+        mMediaBrowserCompat.disconnect();
     }
+
+    @Override
+    public void currentState(int state) {
+        if (state == STATE_PAUSED) {
+            playMusic();
+        }else {
+            pauseMusic();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        // TODO Auto-generated method stub
+        super.onNewIntent(intent);
+        setIntent(intent);
+        Log.i("onNewIntent", intent.toString());    // DEBUG - very useful
+        Toast.makeText(MainActivity.this,"onNewIntent",Toast.LENGTH_LONG).show();
+
+        if (intent.getExtras() != null) {   // As the Intent we send back has extras, if it don't, it is a different Intent. it is possible to use TRY {} CATCH{} for this as well to find if Extras is NULL.
+            String tmp;
+            tmp = intent.getExtras().getString("DO");
+            if (tmp != null) {
+                if (tmp.equals("play")){
+                    Toast.makeText(MainActivity.this,"ok",Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Log.i("onNewIntent", "No new Intent");
+            }
+        } else {
+            Toast.makeText(MainActivity.this,"No new intent",Toast.LENGTH_LONG).show();
+        }
+    }
+
 }

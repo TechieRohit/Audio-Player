@@ -9,23 +9,22 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.RemoteControlClient;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.widget.RemoteViews;
 
+import com.music.rohit.musicplayer.MediaButtonHelper;
 import com.music.rohit.musicplayer.R;
-import com.music.rohit.musicplayer.notification.MediaStyleHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,7 +55,47 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         //mMediaPlayer.setVolume(1.0f,1.0f);
         initializeMediaPlayer();
         initializeMediaSession();
-        //initNoisyReceiver();
+        createNotification();
+
+        /*new MyNotification(AudioService.this);*/
+    }
+
+    private void createNotification() {
+
+        builder = new android.support.v4.app.NotificationCompat.Builder(getApplicationContext())
+                // Set Icon
+                .setSmallIcon(R.mipmap.ic_launcher)
+                // Set Ticker Message
+                .setTicker("New Notification")
+                // Dismiss Notification
+                .setAutoCancel(false)
+                // Set PendingIntent into Notification
+                //.setContentIntent(pIntent)
+                // Set RemoteViews into Notification
+                //Sticky Notification
+                .setOngoing(true);
+
+        remoteViews = new RemoteViews(getPackageName(),
+                R.layout.my_notification);
+
+        Intent i = new Intent(getApplicationContext(),AudioService.class);
+        i.putExtra("DO","play");
+
+        PendingIntent pIntent = PendingIntent.getActivity(this, 0, i,
+                0);
+
+        remoteViews.setOnClickPendingIntent(R.id.my_notification_remote_play,pIntent);
+
+        builder.setContent(remoteViews);
+
+        NotificationManager notificationmanager = (NotificationManager)
+                getSystemService(NOTIFICATION_SERVICE);
+        // Build Notification with Notification Manager
+
+        Random random = new Random();
+        int m = random.nextInt(9999 - 1000) + 1000;
+
+        notificationmanager.notify(m, builder.build());
     }
 
     @Override
@@ -143,6 +182,8 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
             /*showPlayNotification();*/
             /*myNotification();*/
             mMediaPlayer.start();
+            remoteViews.setImageViewResource
+                    (R.id.my_notification_remote_play,android.R.drawable.ic_media_pause);
         }
 
         @Override
@@ -153,6 +194,8 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
                 mMediaPlayer.pause();
                 setMediaPlaybackState(PlaybackStateCompat.STATE_PAUSED);
                 /*showPausedNotification();*/
+                remoteViews.setImageViewResource
+                        (R.id.my_notification_remote_play,android.R.drawable.ic_media_play);
             }
         }
 
@@ -190,6 +233,9 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         @Override
         public void onSeekTo(long pos) {
             super.onSeekTo(pos);
+            mMediaPlayer.getDuration();
+
+            mMediaPlayer.seekTo((int) (mMediaPlayer.getCurrentPosition() + pos));
         }
 
     };
@@ -229,21 +275,6 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         setSessionToken(mMediaSessionCompat.getSessionToken());
     }
 
-    /*private BroadcastReceiver mNoisyReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if( mMediaPlayer != null && mMediaPlayer.isPlaying() ) {
-                mMediaPlayer.pause();
-            }
-        }
-    };*/
-
-    /*private void initNoisyReceiver() {
-        //Handles headphones coming unplugged. cannot be done through a manifest receiver
-        IntentFilter filter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-        registerReceiver(mNoisyReceiver, filter);
-    }*/
-
     //Requesting audio focus
     private boolean fetchAudioFocus() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -254,34 +285,6 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
 
         return result == AudioManager.AUDIOFOCUS_GAIN;
     }
-
-    /*private void showPlayNotification() {
-        android.support.v4.app.NotificationCompat.Builder builder = MediaStyleHelper.
-                from(AudioService.this,mMediaSessionCompat);
-
-        builder.addAction(new android.support.v4.app.NotificationCompat.Action(android.R.drawable.ic_media_pause,"Pause",
-                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE)));
-        builder.setStyle(new NotificationCompat.MediaStyle().setShowActionsInCompactView(0).
-                setMediaSession(mMediaSessionCompat.getSessionToken()));
-        builder.setSmallIcon(R.mipmap.ic_launcher);
-        NotificationManagerCompat.from(AudioService.this).notify(1, builder.build());
-
-        builder.build();
-    }
-
-    private void showPausedNotification() {
-        android.support.v4.app.NotificationCompat.Builder builder = MediaStyleHelper.from(this, mMediaSessionCompat);
-        if( builder == null ) {
-            return;
-        }
-
-        builder.addAction(new NotificationCompat.Action(android.R.drawable.ic_media_play, "Play", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE)));
-        builder.setStyle(new NotificationCompat.MediaStyle().setShowActionsInCompactView(0).setMediaSession(mMediaSessionCompat.getSessionToken()));
-        builder.setSmallIcon(R.mipmap.ic_launcher);
-        NotificationManagerCompat.from(this).notify(1, builder.build());
-
-        builder.build();
-    }*/
 
     private void initializeMediaPlayer() {
         //Initializing Media Player
@@ -306,43 +309,36 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         mMediaSessionCompat.setMetadata(metadataBuilder.build());
     }
 
-    /*public void myNotification() {
+    private void lockScreenControls() {
 
-         remoteViews = new RemoteViews(getPackageName(),
-                R.layout.my_notification);
+        // Use the media button APIs (if available) to register ourselves for media button
+        // events
 
-        *//*remoteViews.setTextViewText(R.id.text, messageBody);
-        remoteViews.setTextViewText(R.id.title, title);*//*
-        // Open NotificationView.java Activity
-        Intent i = new Intent(getApplicationContext(),AudioService.class);
-        PendingIntent pIntent = PendingIntent.getActivity(this, 0, i,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        MediaButtonHelper.registerMediaButtonEventReceiverCompat(AudioManager,
+                mMediaButtonReceiverComponent);
+        // Use the remote control APIs (if available) to set the playback state
+        if (mRemoteControlClientCompat == null) {
+            Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            intent.setComponent(mMediaButtonReceiverComponent);
+            mRemoteControlClientCompat = new RemoteControlClientCompat(PendingIntent.getBroadcast(this /*context*/,0 /*requestCode, ignored*/, intent /*intent*/, 0 /*flags*/));
+            RemoteControlHelper.registerRemoteControlClient(mAudioManager,mRemoteControlClientCompat);
+        }
+        mRemoteControlClientCompat.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+        mRemoteControlClientCompat.setTransportControlFlags(
+                RemoteControlClient.FLAG_KEY_MEDIA_PAUSE |
+                        RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS |
+                        RemoteControlClient.FLAG_KEY_MEDIA_NEXT |
+                        RemoteControlClient.FLAG_KEY_MEDIA_STOP);
 
-         builder = new android.support.v4.app.NotificationCompat.Builder(getApplicationContext())
-                // Set Icon
-                .setSmallIcon(R.mipmap.ic_launcher)
-                // Set Ticker Message
-                .setTicker("New Notification")
-                // Dismiss Notification
-                .setAutoCancel(false)
-                // Set PendingIntent into Notification
-                .setContentIntent(pIntent)
-                // Set RemoteViews into Notification
-                .setContent(remoteViews)
-                 //Sticky Notification
-                 .setOngoing(true);
-
-
-        // Locate and set the Image into customnotificationtext.xml ImageViews
-        remoteViews.setImageViewResource(R.id.imagenotileft, R.mipmap.ic_launcher);
-        builder.setPriority(2);
-
-        NotificationManager notificationmanager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        // Build Notification with Notification Manager
-
-        Random random = new Random();
-        int m = random.nextInt(9999 - 1000) + 1000;
-
-        notificationmanager.notify(m, builder.build());
-    }*/
+        //update remote controls
+        mRemoteControlClientCompat.editMetadata(true)
+                .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, "NombreArtista")
+                .putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, "Titulo Album")
+                .putString(MediaMetadataRetriever.METADATA_KEY_TITLE, nombreCancion)
+                //.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,playingItem.getDuration())
+                // TODO: fetch real item artwork
+                .putBitmap(RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK, getAlbumArt())
+                .apply();
+    }
+}
 }

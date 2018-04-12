@@ -31,7 +31,7 @@
         <ImageView
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:id="@+id/remote_play"
+            android:id="@+id/my_notification_remote_play"
             android:layout_weight="1"
             android:padding="5dp"
             android:src="@android:drawable/ic_media_pause" />
