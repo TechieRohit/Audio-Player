@@ -1,4 +1,4 @@
-package com.music.rohit.musicplayer;
+package com.music.rohit.musicplayer.utils;
 
 import android.content.ComponentName;
 import android.media.AudioManager;
@@ -7,9 +7,7 @@ import android.util.Log;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-/**
- * Class that assists with handling new media button APIs available in API level 8.
- */
+
 public class MediaButtonHelper {
     // Backwards compatibility code (methods available as of API Level 8)
     private static final String TAG = "MediaButtonHelper";

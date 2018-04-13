@@ -16,13 +16,11 @@ import com.music.rohit.musicplayer.activity.MainActivity;
 /*
 public class NotificationReceiver extends BroadcastReceiver {
 
-    MusicState state;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-         state = (MusicState)context;
 
         if(action.equalsIgnoreCase("com.example.app.ACTION_PLAY")){
 

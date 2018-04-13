@@ -9,7 +9,6 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.RemoteControlClient;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
@@ -23,7 +22,6 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.widget.RemoteViews;
 
-import com.music.rohit.musicplayer.MediaButtonHelper;
 import com.music.rohit.musicplayer.R;
 
 import java.io.IOException;
@@ -83,6 +81,10 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
 
         PendingIntent pIntent = PendingIntent.getActivity(this, 0, i,
                 0);
+
+        /*Intent switchIntent = new Intent("com.example.app.ACTION_PLAY");
+        PendingIntent pendingSwitchIntent = PendingIntent.getBroadcast(this, 100,
+                switchIntent, 0);*/
 
         remoteViews.setOnClickPendingIntent(R.id.my_notification_remote_play,pIntent);
 
@@ -309,7 +311,7 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         mMediaSessionCompat.setMetadata(metadataBuilder.build());
     }
 
-    private void lockScreenControls() {
+   /* private void lockScreenControls() {
 
         // Use the media button APIs (if available) to register ourselves for media button
         // events
@@ -320,7 +322,7 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         if (mRemoteControlClientCompat == null) {
             Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             intent.setComponent(mMediaButtonReceiverComponent);
-            mRemoteControlClientCompat = new RemoteControlClientCompat(PendingIntent.getBroadcast(this /*context*/,0 /*requestCode, ignored*/, intent /*intent*/, 0 /*flags*/));
+            mRemoteControlClientCompat = new RemoteControlClientCompat(PendingIntent.getBroadcast(this *//*context*//*,0 *//*requestCode, ignored*//*, intent *//*intent*//*, 0 *//*flags*//*));
             RemoteControlHelper.registerRemoteControlClient(mAudioManager,mRemoteControlClientCompat);
         }
         mRemoteControlClientCompat.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
@@ -334,11 +336,10 @@ public class AudioService extends MediaBrowserServiceCompat implements MediaPlay
         mRemoteControlClientCompat.editMetadata(true)
                 .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, "NombreArtista")
                 .putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, "Titulo Album")
-                .putString(MediaMetadataRetriever.METADATA_KEY_TITLE, nombreCancion)
                 //.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION,playingItem.getDuration())
                 // TODO: fetch real item artwork
                 .putBitmap(RemoteControlClientCompat.MetadataEditorCompat.METADATA_KEY_ARTWORK, getAlbumArt())
                 .apply();
-    }
+    }*/
 }
-}
+

@@ -20,7 +20,7 @@ import com.music.rohit.musicplayer.service.AudioService;
 
 import static com.music.rohit.musicplayer.R.*;
 
-public class MainActivity extends AppCompatActivity implements MusicState {
+public class MainActivity extends AppCompatActivity {
 
     private static final int STATE_PAUSED = 0;
     private static final int STATE_PLAYING = 1;
@@ -114,16 +114,8 @@ public class MainActivity extends AppCompatActivity implements MusicState {
             @Override
             public void onClick(View view) {
                 if( mCurrentState == STATE_PAUSED ) {
-                    /*getSupportMediaController().getTransportControls().play();
-                    mCurrentState = STATE_PLAYING;*/
                     playMusic();
                 } else {
-                    /*if( getSupportMediaController().getPlaybackState().getState() ==
-                            PlaybackStateCompat.STATE_PLAYING ) {
-                        getSupportMediaController().getTransportControls().pause();
-                    }
-
-                    mCurrentState = STATE_PAUSED;*/
                     pauseMusic();
                 }
 
@@ -171,14 +163,14 @@ public class MainActivity extends AppCompatActivity implements MusicState {
         mMediaBrowserCompat.disconnect();
     }
 
-    @Override
+    /*@Override
     public void currentState(int state) {
         if (state == STATE_PAUSED) {
             playMusic();
         }else {
             pauseMusic();
         }
-    }
+    }*/
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -186,14 +178,13 @@ public class MainActivity extends AppCompatActivity implements MusicState {
         super.onNewIntent(intent);
         setIntent(intent);
         Log.i("onNewIntent", intent.toString());    // DEBUG - very useful
-        Toast.makeText(MainActivity.this,"onNewIntent",Toast.LENGTH_LONG).show();
+
 
         if (intent.getExtras() != null) {   // As the Intent we send back has extras, if it don't, it is a different Intent. it is possible to use TRY {} CATCH{} for this as well to find if Extras is NULL.
             String tmp;
             tmp = intent.getExtras().getString("DO");
             if (tmp != null) {
                 if (tmp.equals("play")){
-                    Toast.makeText(MainActivity.this,"ok",Toast.LENGTH_LONG).show();
                 }
             } else {
                 Log.i("onNewIntent", "No new Intent");
